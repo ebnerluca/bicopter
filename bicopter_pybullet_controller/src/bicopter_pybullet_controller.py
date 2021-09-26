@@ -6,10 +6,12 @@ import rospy
 import pybullet as p
 import pybullet_data
 
+import numpy as np
+
 from std_srvs.srv import Trigger, TriggerResponse
 from std_msgs.msg import String
 
-from bicopter_msgs.msg import ActuatorCommands
+from bicopter_msgs.msg import ActuatorCommands, SensorReadings
 # from sensor_msgs.msg import Image, CameraInfo
 # from geometry_msgs.msg import TransformStamped
 
@@ -23,13 +25,15 @@ class BicopterPybulletController():
         # parameters
         self.controllerRate = rospy.get_param("controller_rate")
         self.actuatorCommandsTopic = rospy.get_param("actuator_commands_topic")
+        self.IMUreadingsTopic = rospy.get_param("imu_readings_topic")
         self.URDFpath = rospy.get_param("urdf_path")
 
         self.actuatorCommands = [0.0, 0.0, 0.0, 0.0]  # [speed_left, speed_right, servo_left, servo_right]
         self.newestCommandStamp = None
 
         # Publishers
-        # self.RGBImagePublisher = rospy.Publisher(self.cameraRGBImageTopic, Image, queue_size=10
+        self.IMUpublisher = rospy.Publisher(self.IMUreadingsTopic, SensorReadings, queue_size=10)
+        self.IMUreadings = SensorReadings()
 
         # Subscribers
         rospy.Subscriber(self.actuatorCommandsTopic, ActuatorCommands, self.actuator_commands_callback)
@@ -98,7 +102,29 @@ class BicopterPybulletController():
             p.applyExternalForce(objectUniqueId=self.biCopterId, linkIndex=1, forceObj=[0.0, 0.0, self.actuatorCommands[1]],
                                  posObj=[0.0, 0.0, 0.0], flags=p.LINK_FRAME)
 
+            # simulation step
             p.stepSimulation()
+
+            # get readings
+            pos, orientation = p.getBasePositionAndOrientation(self.biCopterId)
+            # rpy = np.around(np.array(p.getEulerFromQuaternion(orientation)), 2)
+            self.IMUreadings.q_x = orientation[0]
+            self.IMUreadings.q_y = orientation[1]
+            self.IMUreadings.q_z = orientation[2]
+            self.IMUreadings.q_w = orientation[3]
+
+            vel, angular_vel = p.getBaseVelocity(self.biCopterId)
+            rotmat = np.array(p.getMatrixFromQuaternion(orientation)).reshape((3, 3), order="F")
+            drpy = rotmat.dot(np.array(angular_vel))
+
+            self.IMUreadings.w_x = drpy[0]
+            self.IMUreadings.w_y = drpy[1]
+            self.IMUreadings.w_z = drpy[2]
+
+            # publish readings
+            self.IMUpublisher.publish(self.IMUreadings)
+
+            # wait
             rate.sleep()
 
     # On ROS shutdown

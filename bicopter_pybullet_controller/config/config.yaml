@@ -1,6 +1,7 @@
 # node
 controller_rate: 240.0
 actuator_commands_topic: /bicopter/actuator_commands
+imu_readings_topic: /bicopter/imu_readings
 
 # bicopter
 urdf_path: $(find bicopter_pybullet_controller)/urdf/bicopter_urdf.urdf
