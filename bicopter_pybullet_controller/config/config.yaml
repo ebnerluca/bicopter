@@ -4,6 +4,6 @@ actuator_commands_topic: /bicopter/actuator_commands
 imu_readings_topic: /bicopter/imu_readings
 
 # bicopter
-urdf_path: $(find bicopter_pybullet_controller)/urdf/bicopter_urdf.urdf
+urdf_path: $(find bicopter_model)/urdf/bicopter_urdf.urdf
 prop_c1: 1.0  # Thrust = c1 * speed^2
 

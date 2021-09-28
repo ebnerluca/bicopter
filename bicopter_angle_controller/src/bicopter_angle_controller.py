@@ -48,10 +48,10 @@ class BicopterAngleController():
         self.actuatorCommands.r2 = 1.0
         self.actuatorCommands.b1 = 0.0
         self.actuatorCommands.b2 = 0.0
-        self.r1 = 0.0  # speed left
+        """self.r1 = 0.0  # speed left
         self.r2 = 0.0  # speed right
         self.b1 = 0.0  # servo_left
-        self.b2 = 0.0  # servo_right
+        self.b2 = 0.0  # servo_right"""
 
         # Subscribers
         rospy.Subscriber(self.IMUreadingsTopic, SensorReadings, self.imu_readings_callback)
@@ -131,10 +131,11 @@ class BicopterAngleController():
             # publish actuator commands
             self.actuatorCommandPublisher.publish(self.actuatorCommands)
 
-            self.r1 = self.actuatorCommands.r1
+            # update state
+            """self.r1 = self.actuatorCommands.r1
             self.r2 = self.actuatorCommands.r2
             self.b1 = self.actuatorCommands.b1
-            self.b2 = self.actuatorCommands.b2
+            self.b2 = self.actuatorCommands.b2"""
 
             # wait
             rate.sleep()
