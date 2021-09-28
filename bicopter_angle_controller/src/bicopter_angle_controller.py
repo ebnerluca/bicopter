@@ -30,15 +30,16 @@ class BicopterAngleController():
         self.p_kd = rospy.get_param("gains/pitch/kd")
         self.y_kp = rospy.get_param("gains/yaw/kp")
         self.y_kd = rospy.get_param("gains/yaw/kd")
-        self.bicopter_prop_c1 = rospy.get_param("/bicopter_pybullet_controller/prop_c1")
-        self.bicopter_arm_l1 = 0.110
-        self.bicopter_arm_l2 = 0.120
-        self.bicopter_Ixx = 0.003
-        self.bicopter_Iyy = 0.001
-        self.bicopter_Izz = 0.003
-        self.bicopter_mass = 0.6
+        self.bicopter_arm_l1 = rospy.get_param("/bicopter_model/bicopter_arm_l1")
+        self.bicopter_arm_l2 = rospy.get_param("/bicopter_model/bicopter_arm_l2")
+        self.bicopter_Ixx = rospy.get_param("/bicopter_model/bicopter_Ixx")
+        self.bicopter_Iyy = rospy.get_param("/bicopter_model/bicopter_Iyy")
+        self.bicopter_Izz = rospy.get_param("/bicopter_model/bicopter_Izz")
+        self.bicopter_mass = rospy.get_param("/bicopter_model/bicopter_mass")
+        self.bicopter_prop_c1 = rospy.get_param("/bicopter_model/bicopter_prop_lift_coeff")
 
         # class variables
+        self.jacobian = self.get_jacobian()
 
         # Publishers
         self.actuatorCommandPublisher = rospy.Publisher(self.actuatorCommandsTopic, ActuatorCommands, queue_size=10)
@@ -64,27 +65,21 @@ class BicopterAngleController():
 
         q = [readings.q_x, readings.q_y, readings.q_z, readings.q_w]
         r, p, y = euler_from_quaternion(q)
-        # R = quaternion_matrix(q)[0:3, 0:3]
-        # w = R.dot(np.array([readings.w_x, readings.w_y, readings.w_z]))
-        # rospy.loginfo("rpy: " + str(np.around(np.array([r, p, y]), 2)) + ", drpy: " + str(np.around(w, 2)))
-        """ddr = self.r_kp * (0.0 - r) + self.r_kd * (0.0 - w[0])
-        ddp = self.p_kp * (0.0 - p) + self.p_kd * (0.0 - w[1])
-        ddy = self.y_kp * (0.0 - y) + self.y_kd * (0.0 - w[2])
-        throttle = 5.50"""
+
+        # PD controller
         ddr = self.r_kp * (0.0 - r) + self.r_kd * (0.0 - readings.w_x)
         ddp = self.p_kp * (0.0 - p) + self.p_kd * (0.0 - readings.w_y)
         ddy = self.y_kp * (0.0 - y) + self.y_kd * (0.0 - readings.w_z)
         throttle = 8.0 * (1.0 - readings.height) + 1.0 * (0.0 - readings.v_z)
 
         # update actuator commands
-        jacobian = self.get_jacobian()
-        # rospy.loginfo("j: \n" + str(jacobian))
-        jinv = np.linalg.pinv(jacobian)
+        # self.jacobian = self.get_jacobian()  # if dynamic jacobian is used
+        jinv = np.linalg.pinv(self.jacobian)
         e = np.array([ddr, ddp, ddy, throttle])
         u = jinv.dot(e)
 
-        self.actuatorCommands.r1 = np.clip(u[0], 0.0, np.sqrt(4))
-        self.actuatorCommands.r2 = np.clip(u[1], 0.0, np.sqrt(4))
+        self.actuatorCommands.r1 = np.clip(u[0], 0.5, np.sqrt(4))
+        self.actuatorCommands.r2 = np.clip(u[1], 0.5, np.sqrt(4))
         self.actuatorCommands.b1 = u[2]
         self.actuatorCommands.b2 = u[3]
 

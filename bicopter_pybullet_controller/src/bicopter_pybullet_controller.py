@@ -27,7 +27,7 @@ class BicopterPybulletController():
         self.actuatorCommandsTopic = rospy.get_param("actuator_commands_topic")
         self.IMUreadingsTopic = rospy.get_param("imu_readings_topic")
         self.URDFpath = rospy.get_param("urdf_path")
-        self.bicopter_prop_c1 = rospy.get_param("/bicopter_pybullet_controller/prop_c1")
+        self.bicopter_prop_c1 = rospy.get_param("/bicopter_model/bicopter_prop_lift_coeff")
 
         self.actuatorCommands = [0.0, 0.0, 0.0, 0.0]  # [speed_left, speed_right, servo_left, servo_right]
         self.newestCommandStamp = None

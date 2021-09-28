@@ -8,8 +8,8 @@ imu_readings_topic: /bicopter/imu_readings
 # controller
 gains:
   roll:
-    kp: 100.0
-    kd: 10.0
+    kp: 300.0
+    kd: 30.0
   pitch:
     kp: 700.0
     kd: 100.0

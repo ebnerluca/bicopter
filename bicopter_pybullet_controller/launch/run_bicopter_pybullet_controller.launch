@@ -1,10 +1,13 @@
 <launch>
 
+    <group ns="bicopter_model">
+        <rosparam command="load" file="$(find bicopter_model)/urdf/bicopter_properties.yaml" subst_value="True" />
+    </group>
+
 	<group ns="bicopter_pybullet_controller">
 
         <!-- Load Params -->
         <rosparam command="load" file="$(find bicopter_pybullet_controller)/config/config.yaml" subst_value="True" />
-
         <!-- Bicopter Pybullet Controller -->
 		<node pkg="bicopter_pybullet_controller" type="bicopter_pybullet_controller.py" name="bicopter_pybullet_controller_node" output="screen">
 		</node>

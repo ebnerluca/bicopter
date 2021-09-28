@@ -1,0 +1,7 @@
+bicopter_arm_l1: 0.110  # [m], lever arm for roll and yaw
+bicopter_arm_l2: 0.120  # [m], lever arm for pitch
+bicopter_Ixx: 0.003
+bicopter_Iyy: 0.001
+bicopter_Izz: 0.003
+bicopter_mass: 0.6
+bicopter_prop_lift_coeff: 1.0
