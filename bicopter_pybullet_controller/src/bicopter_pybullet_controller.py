@@ -63,8 +63,6 @@ class BicopterPybulletController():
 
     def actuator_commands_callback(self, commands):
 
-        rospy.loginfo_throttle(5, "Received actuator commands.")
-
         # update actuator commands
         self.actuatorCommands[0] = commands.r1
         self.actuatorCommands[1] = commands.r2
@@ -126,6 +124,9 @@ class BicopterPybulletController():
             self.IMUreadings.w_y = drpy[1]
             self.IMUreadings.w_z = drpy[2]
 
+            self.IMUreadings.height = pos[2]
+            self.IMUreadings.v_z = vel[2]
+
             # publish readings
             self.IMUpublisher.publish(self.IMUreadings)
 
@@ -146,7 +147,7 @@ if __name__ == '__main__':
 
     try:
         node = BicopterPybulletController()
-        rospy.loginfo("[BicopterPybulletController]: Node is running.")
+        node.log("Node is running.")
         node.simulate()
 
         rospy.spin()

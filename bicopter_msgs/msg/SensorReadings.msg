@@ -11,3 +11,4 @@ float32 w_z
 
 # height above ground
 float32 height
+float32 v_z

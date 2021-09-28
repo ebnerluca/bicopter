@@ -62,28 +62,29 @@ class BicopterAngleController():
 
     def imu_readings_callback(self, readings):
 
-        rospy.loginfo_throttle(5, "Received IMU readings.")
         q = [readings.q_x, readings.q_y, readings.q_z, readings.q_w]
         r, p, y = euler_from_quaternion(q)
-        R = quaternion_matrix(q)[0:3, 0:3]
-        w = R.dot(np.array([readings.w_x, readings.w_y, readings.w_z]))
-        #rospy.loginfo("rpy: " + str(np.around(np.array([r, p, y]), 2)) + ", drpy: " + str(np.around(w, 2)))
-        ddr = self.r_kp * (0.0 - r) + self.r_kd * (0.0 - w[0])
+        # R = quaternion_matrix(q)[0:3, 0:3]
+        # w = R.dot(np.array([readings.w_x, readings.w_y, readings.w_z]))
+        # rospy.loginfo("rpy: " + str(np.around(np.array([r, p, y]), 2)) + ", drpy: " + str(np.around(w, 2)))
+        """ddr = self.r_kp * (0.0 - r) + self.r_kd * (0.0 - w[0])
         ddp = self.p_kp * (0.0 - p) + self.p_kd * (0.0 - w[1])
         ddy = self.y_kp * (0.0 - y) + self.y_kd * (0.0 - w[2])
-        throttle = 5.50
+        throttle = 5.50"""
+        ddr = self.r_kp * (0.0 - r) + self.r_kd * (0.0 - readings.w_x)
+        ddp = self.p_kp * (0.0 - p) + self.p_kd * (0.0 - readings.w_y)
+        ddy = self.y_kp * (0.0 - y) + self.y_kd * (0.0 - readings.w_z)
+        throttle = 8.0 * (1.0 - readings.height) + 1.0 * (0.0 - readings.v_z)
 
         # update actuator commands
         jacobian = self.get_jacobian()
         # rospy.loginfo("j: \n" + str(jacobian))
         jinv = np.linalg.pinv(jacobian)
-        rospy.loginfo("jinv: \n" + str(jinv))
         e = np.array([ddr, ddp, ddy, throttle])
-        rospy.loginfo("e: \n" + str(e))
         u = jinv.dot(e)
 
-        self.actuatorCommands.r1 = np.clip(u[0], 0.0, np.sqrt(3.1))
-        self.actuatorCommands.r2 = np.clip(u[1], 0.0, np.sqrt(3.1))
+        self.actuatorCommands.r1 = np.clip(u[0], 0.0, np.sqrt(4))
+        self.actuatorCommands.r2 = np.clip(u[1], 0.0, np.sqrt(4))
         self.actuatorCommands.b1 = u[2]
         self.actuatorCommands.b2 = u[3]
 
@@ -93,6 +94,7 @@ class BicopterAngleController():
         k2 = self.bicopter_arm_l2 * self.bicopter_prop_c1 / self.bicopter_Iyy
         k3 = self.bicopter_arm_l1 * self.bicopter_prop_c1 / self.bicopter_Izz
 
+        # linearized jacobian around current state
         """jacobian = np.array([
             [k1 * np.cos(self.b1) * self.r1, -k1 * np.cos(self.b2) * self.r2, -k1 * np.sin(self.b1) * self.r1 * self.r1, -k1 * np.sin(self.b1) * self.r2 * self.r2],
             [k2 * np.sin(self.b1) * self.r1, k2 * np.sin(self.b2) * self.r2, k2 * np.cos(self.b1) * self.r1 * self.r1, k2 * np.cos(self.b1) * self.r2 * self.r2],
@@ -100,6 +102,7 @@ class BicopterAngleController():
             [self.bicopter_prop_c1 * self.r1 / self.bicopter_mass, self.bicopter_prop_c1 + self.r2 / self.bicopter_mass, 0.0, 0.0]
         ])"""
 
+        # linearized jacobian around equilibrium
         r_eq = self.bicopter_mass * 9.81 / (2.0 * self.bicopter_prop_c1)
         jacobian = np.array([
             [k1 * r_eq, -k1 * r_eq, 0.0, 0.0],
@@ -119,7 +122,7 @@ class BicopterAngleController():
         return response
 
     def log(self, stuff):
-        rospy.loginfo("[BicopterPybulletController]: " + stuff)
+        rospy.loginfo("[BicopterAngleController]: " + stuff)
 
     # Main Loop
     def run(self):
@@ -153,7 +156,7 @@ if __name__ == '__main__':
 
     try:
         node = BicopterAngleController()
-        rospy.loginfo("[BicopterPybulletController]: Node is running.")
+        node.log("Node is running.")
         node.run()
 
         rospy.spin()
