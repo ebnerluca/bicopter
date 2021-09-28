@@ -1,5 +1,0 @@
-string bodyName
-bool isStatic
----
-bool success
-string message

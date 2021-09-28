@@ -1,5 +1,5 @@
 Header header
-float32 speed_left
-float32 speed_right
-float32 servo_left
-float32 servo_right
+float32 r1
+float32 r2
+float32 b1
+float32 b2

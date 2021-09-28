@@ -27,6 +27,7 @@ class BicopterPybulletController():
         self.actuatorCommandsTopic = rospy.get_param("actuator_commands_topic")
         self.IMUreadingsTopic = rospy.get_param("imu_readings_topic")
         self.URDFpath = rospy.get_param("urdf_path")
+        self.bicopter_prop_c1 = rospy.get_param("/bicopter_pybullet_controller/prop_c1")
 
         self.actuatorCommands = [0.0, 0.0, 0.0, 0.0]  # [speed_left, speed_right, servo_left, servo_right]
         self.newestCommandStamp = None
@@ -62,11 +63,13 @@ class BicopterPybulletController():
 
     def actuator_commands_callback(self, commands):
 
+        rospy.loginfo_throttle(5, "Received actuator commands.")
+
         # update actuator commands
-        self.actuatorCommands[0] = commands.speed_left
-        self.actuatorCommands[1] = commands.speed_right
-        self.actuatorCommands[2] = commands.servo_left
-        self.actuatorCommands[3] = commands.servo_right
+        self.actuatorCommands[0] = commands.r1
+        self.actuatorCommands[1] = commands.r2
+        self.actuatorCommands[2] = commands.b1
+        self.actuatorCommands[3] = commands.b2
 
         self.newestCommandStamp = commands.header.stamp
 
@@ -94,12 +97,14 @@ class BicopterPybulletController():
                                         targetPositions=[self.actuatorCommands[2], self.actuatorCommands[3]],
                                         targetVelocities=[0.0, 0.0],
                                         positionGains=[1.0, 1.0],
-                                        velocityGains=[0.1, 0.1])
+                                        velocityGains=[0.5, 0.5])
 
             # apply thrust
-            p.applyExternalForce(objectUniqueId=self.biCopterId, linkIndex=0, forceObj=[0.0, 0.0, self.actuatorCommands[0]],
+            p.applyExternalForce(objectUniqueId=self.biCopterId, linkIndex=0,
+                                 forceObj=[0.0, 0.0, self.bicopter_prop_c1 * self.actuatorCommands[0]*self.actuatorCommands[0]],
                                  posObj=[0.0, 0.0, 0.0], flags=p.LINK_FRAME)
-            p.applyExternalForce(objectUniqueId=self.biCopterId, linkIndex=1, forceObj=[0.0, 0.0, self.actuatorCommands[1]],
+            p.applyExternalForce(objectUniqueId=self.biCopterId, linkIndex=1,
+                                 forceObj=[0.0, 0.0, self.bicopter_prop_c1 * self.actuatorCommands[1]*self.actuatorCommands[1]],
                                  posObj=[0.0, 0.0, 0.0], flags=p.LINK_FRAME)
 
             # simulation step
@@ -137,7 +142,7 @@ class BicopterPybulletController():
 if __name__ == '__main__':
 
     # Initialize node and name it.
-    rospy.init_node('data_generation')
+    rospy.init_node('bicopter_pybullet_controller')
 
     try:
         node = BicopterPybulletController()
