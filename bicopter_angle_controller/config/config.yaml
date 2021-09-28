@@ -1,0 +1,21 @@
+# node
+controller_rate: 240.0
+
+# subscriber topics
+actuator_commands_topic: /bicopter/actuator_commands
+imu_readings_topic: /bicopter/imu_readings
+
+# controller
+gains:
+  roll:
+    kp: 5.0
+    kd: 0.5
+  pitch:
+    kp: 700.0
+    kd: 100.0
+  yaw:
+    kp: 0.0  # no yaw position control
+    kd: 0.5
+
+
+

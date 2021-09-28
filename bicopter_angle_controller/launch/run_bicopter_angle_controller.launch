@@ -1,0 +1,16 @@
+<launch>
+
+	<group ns="bicopter_angle_controller">
+
+        <!-- Load Params -->
+        <rosparam command="load" file="$(find bicopter_angle_controller)/config/config.yaml" subst_value="True" />
+
+        <!-- Bicopter Pybullet Controller -->
+		<node pkg="bicopter_angle_controller" type="bicopter_angle_controller.py" name="bicopter_angle_controller_node" output="screen">
+		</node>
+
+	</group>
+
+
+
+</launch>
