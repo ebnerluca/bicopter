@@ -28,7 +28,7 @@ class BicopterLowlevelController(Node):
         super().__init__('bicopter_lowlevel_controller')
 
         # TODO read from config
-
+        self.i = 0
         # pins
         self.servo_left_gpio_pin = 17
         self.servo_right_gpio_pin = 27
@@ -57,7 +57,7 @@ class BicopterLowlevelController(Node):
         self.servo_left = AngularServo(pin=self.servo_left_gpio_pin,
                                        initial_angle=None,
                                        min_angle=self.servo_left_min_angle,
-                                       max_angle=self.servo_max_min_angle)
+                                       max_angle=self.servo_left_max_angle)
         self.servo_right = AngularServo(pin=self.servo_right_gpio_pin,
                                         initial_angle=None,
                                         min_angle=self.servo_right_min_angle,
@@ -72,11 +72,11 @@ class BicopterLowlevelController(Node):
                                  max_pulse_width=self.motor_right_max_signal)
 
         # motor controller
-        self.motor_controller_timer = self.create_timer(1./200., self.apply_commands)  # apply new commands with 200Hz
-        self.servo_left_command = None  # measured in degrees
-        self.servo_right_command = None  # measured in degrees
-        self.motor_left_command = None  # measured from -1.0 (zero power) to 1.0 (max power)
-        self.motor_right_command = None
+        self.motor_controller_timer = self.create_timer(1./50., self.apply_commands)  # apply new commands with 200Hz
+        self.servo_left_command = 0.0  # measured in degrees
+        self.servo_right_command = 0.0  # measured in degrees
+        self.motor_left_command = -1.0  # measured from -1.0 (zero power) to 1.0 (max power)
+        self.motor_right_command = -1.0
 
         # services
         self.is_armed = False
@@ -84,7 +84,7 @@ class BicopterLowlevelController(Node):
         self.disarm_srv = self.create_service(Trigger, 'disarm', self.disarm_srv_callback)
 
         # publishers
-        # self.publisher_ = self.create_publisher(String, 'topic', 10)
+        self.publisher_ = self.create_publisher(String, 'topic', 10)
 
         # subscribers
         self.commands_sub = self.create_subscription(String, 'commands', self.update_commands_callback, 10)
@@ -100,10 +100,11 @@ class BicopterLowlevelController(Node):
             self.motor_left.value = self.motor_left_command
             self.motor_right.value = self.motor_right_command
 
-        """msg = String()
-        msg.data = 'motor commands applied'
+        self.i = self.i + 1
+        msg = String()
+        msg.data = str(self.i)
+        print(str(self.i))
         self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)"""
 
     def arm_srv_callback(self, request, response):
 
@@ -140,6 +141,8 @@ class BicopterLowlevelController(Node):
             self.is_armed = False
             response.success = True
             response.message = "Bicopter disarmed."
+
+        return response
 
     def update_commands_callback(self, commands):
 
