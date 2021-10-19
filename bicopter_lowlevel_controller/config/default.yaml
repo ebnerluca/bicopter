@@ -1,3 +1,33 @@
-bicopter_lowlevel_controller_node:
-  ros__parameters:
-    test_variable: 2.0
+bicopter_lowlevel_controller:
+  bicopter_lowlevel_controller_node:
+    ros__parameters:
+
+      # GPIO pins
+      servo_left_gpio_pin: 17
+      servo_right_gpio_pin: 27
+      motor_left_gpio_pin: 5
+      motor_right_gpio_pin: 6
+
+      # Motor ESC protocol
+      motor_pwm_min_signal: 1.0 / 1000.0  # ESCs accept pwm signal with 50Hz, 1-2ms duty cycle
+      motor_pwm_max_signal: 2.0 / 1000.0
+      motor_arm_signal: 1.15 / 1000.
+
+
+      # Safety Limits
+      servo_left_min_angle: -45.0  # deg
+      servo_left_max_angle: 45.0
+      servo_right_min_angle: -45.0
+      servo_right_max_angle: 45.0
+      # motor_left_min_signal: 1. / 1000
+      # motor_left_max_signal: 1.5 / 1000.  # max 50% speed
+      # motor_right_min_signal: 1. / 1000.
+      # motor_right_max_signal: 1.5 / 1000.  # max 50% speed
+      motor_power_limit: 0.5  # [0,1], 1.0 means max power
+
+      # Servo Calibration
+      servo_left_calibrated_min_angle: -90.0  # deg, minimum possible angle when servo receives min() command
+      servo_left_calibrated_max_angle: 90.0  # deg, maximum possible angle when servo receives max() command
+      servo_right_calibrated_min_angle: -90.0  # deg, minimum possible angle when servo receives min() command
+      servo_right_calibrated_max_angle: 90.0  # deg, maximum possible angle when servo receives max() command
+

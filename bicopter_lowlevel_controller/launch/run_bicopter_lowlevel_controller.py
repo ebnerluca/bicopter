@@ -10,9 +10,9 @@ def generate_launch_description():
     parameters = os.path.join(get_package_share_directory('bicopter_lowlevel_controller'), 'config', 'default.yaml')
 
     node = Node(package='bicopter_lowlevel_controller',
-                namespace='bicopter',
+                namespace='bicopter_lowlevel_controller',
                 executable='bicopter_lowlevel_controller_node',
-                name='bicopter_lowlevel_controller',
+                name='bicopter_lowlevel_controller_node',
                 parameters=[parameters]
                 )
     ld.add_action(node)

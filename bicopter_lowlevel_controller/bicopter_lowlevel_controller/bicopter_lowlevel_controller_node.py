@@ -25,44 +25,72 @@ from gpiozero import Servo, AngularServo
 class BicopterLowlevelController(Node):
 
     def __init__(self):
-        super().__init__('bicopter_lowlevel_controller')
+        super().__init__('bicopter_lowlevel_controller_node')
 
-        print("=======================================")
-
-        # TODO read from config
+        self.get_logger().info("Reading parameters ...")
         self.declare_parameters(namespace='',
                                 parameters=[
-                                    ('test_variable', None)
-                                ])
-        self.test_variable = self.get_parameter('test_variable').get_parameter_value().string_value
-        print("TEST VARIABLE: " + str(self.test_variable))
-        self.i = 0
-        # pins
-        self.servo_left_gpio_pin = 17
-        self.servo_right_gpio_pin = 27
-        self.motor_left_gpio_pin = 5
-        self.motor_right_gpio_pin = 6
+                                    ('servo_left_gpio_pin', None),
+                                    ('servo_right_gpio_pin', None),
+                                    ('motor_left_gpio_pin', None),
+                                    ('motor_right_gpio_pin', None),
 
-        # safety limits
-        self.servo_left_min_angle = -45.0
-        self.servo_left_max_angle = 45.0  # 45deg
-        self.servo_right_min_angle = -45.0
-        self.servo_right_max_angle = 45.0
-        self.motor_left_min_signal = 1. / 1000.
-        self.motor_left_max_signal = 1.5 / 1000.  # max 50% speed
-        self.motor_right_min_signal = 1. / 1000.
-        self.motor_right_max_signal = 1.5 / 1000.  # max 50% speed
-        self.motor_arm_signal = 1.15 / 1000.
-        self.motor_arm_value = ((self.motor_arm_signal - self.motor_left_min_signal) * 2.0) / (
-                    self.motor_left_max_signal - self.motor_left_min_signal) - 1.0
+                                    ('motor_pwm_min_signal', None),
+                                    ('motor_pwm_max_signal', None),
+
+                                    ('servo_left_min_angle', None),
+                                    ('servo_left_max_angle', None),
+                                    ('servo_right_min_angle', None),
+                                    ('servo_right_max_angle', None),
+                                    ('motor_arm_signal', None),
+                                    ('motor_power_limit', None),
+
+                                    ('servo_left_calibrated_min_angle', None),
+                                    ('servo_left_calibrated_max_angle', None),
+                                    ('servo_right_calibrated_min_angle', None),
+                                    ('servo_right_calibrated_max_angle', None)
+
+        ])
+
+        # GPIO pins
+        self.servo_left_gpio_pin = self.get_parameter('servo_left_gpio_pin').value
+        self.servo_right_gpio_pin = self.get_parameter('servo_right_gpio_pin').value
+        self.motor_left_gpio_pin = self.get_parameter('motor_left_gpio_pin').value
+        self.motor_right_gpio_pin = self.get_parameter('motor_right_gpio_pin').value
+
+        # Motor ESC protocol
+        self.motor_pwm_min_signal = self.get_parameter('motor_pwm_min_signal').value
+        self.motor_pwm_max_signal = self.get_parameter('motor_pwm_max_signal').value
+        self.motor_arm_signal = self.get_param('motor_arm_signal')
+
+        # Safety Limits
+        self.servo_left_min_angle = self.get_parameter('servo_left_min_angle').value
+        self.servo_left_max_angle = self.get_parameter('servo_left_max_angle').value
+        self.servo_right_min_angle = self.get_parameter('servo_right_min_angle').value
+        self.servo_right_max_angle = self.get_parameter('servo_right_max_angle').value
+        """self.motor_left_min_signal = self.get_parameter('motor_left_min_signal').value
+        self.motor_left_max_signal = self.get_parameter('motor_left_max_signal').value
+        self.motor_right_min_signal = self.get_parameter('motor_right_min_signal').value
+        self.motor_right_max_signal = self.get_parameter('motor_right_max_signal').value"""
+        self.motor_power_limit = self.get_parameter('motor_power_limit')
+        self.motor_limited_max_signal = self.motor_pwm_min_signal + self.motor_power_limit * \
+                                        (self.motor_pwm_max_signal-self.motor_pwm_min_signal)
+
+        self.motor_arm_value = ((self.motor_arm_signal - self.motor_pwm_min_signal) * 2.0) / (
+                self.motor_pwm_max_signal - self.motor_pwm_min_signal) - 1.0
 
         # calibration
-        self.servo_left_calibrated_min_angle = -90.0  # deg, minimum possible angle when servo receives min() command
-        self.servo_left_calibrated_max_angle = 90.0  # deg, maximum possible angle when servo receives max() command
-        self.servo_right_calibrated_min_angle = -90.0  # deg, minimum possible angle when servo receives min() command
-        self.servo_right_calibrated_max_angle = 90.0  # deg, maximum possible angle when servo receives max() command
+        self.servo_left_calibrated_min_angle = self.get_parameter('servo_left_calibrated_min_angle').value
+        self.servo_left_calibrated_max_angle = self.get_parameter('servo_left_calibrated_max_angle').value
+        self.servo_right_calibrated_min_angle = self.get_parameter('servo_right_calibrated_min_angle').value
+        self.servo_right_calibrated_max_angle = self.get_parameter('servo_right_calibrated_max_angle').value
 
-        # servos, motors (motor ESC signal is same as for servos: pwm, 50Hz, 1-2ms duty)
+        self.get_logger().info("Motor power limit: " + str(self.motor_power_limit))
+        self.get_logger().info("Motor limited max signal: " + str(self.motor_limited_max_signal))
+        self.get_logger().info("Motor arm value: " + str(self.motor_arm_value) + " [-1,1]")
+
+        # servos, motors (motor ESC signal is same as for servos: pwm, 50Hz, 1-2ms duty cycle)
+        self.get_logger().info("Initializing motors and servos ...")
         self.servo_left = AngularServo(pin=self.servo_left_gpio_pin,
                                        initial_angle=None,
                                        min_angle=self.servo_left_min_angle,
@@ -73,12 +101,12 @@ class BicopterLowlevelController(Node):
                                         max_angle=self.servo_right_max_angle)
         self.motor_left = Servo(pin=self.motor_left_gpio_pin,
                                 initial_value=None,
-                                min_pulse_width=self.motor_left_min_signal,
-                                max_pulse_width=self.motor_left_max_signal)
+                                min_pulse_width=self.motor_pwm_min_signal,
+                                max_pulse_width=self.motor_limited_max_signal)
         self.motor_right = Servo(pin=self.motor_right_gpio_pin,
                                  initial_value=None,
-                                 min_pulse_width=self.motor_right_min_signal,
-                                 max_pulse_width=self.motor_right_max_signal)
+                                 min_pulse_width=self.motor_pwm_min_signal,
+                                 max_pulse_width=self.motor_limited_max_signal)
 
         # motor controller
         self.motor_controller_timer = self.create_timer(1. / 50., self.apply_commands)  # apply new commands with 200Hz
@@ -109,11 +137,10 @@ class BicopterLowlevelController(Node):
             self.motor_left.value = self.motor_left_command
             self.motor_right.value = self.motor_right_command
 
-        self.i = self.i + 1
-        msg = String()
-        msg.data = str(self.i)
+        """msg = String()
+        msg.data = "hello"
         print(str(self.i))
-        self.publisher_.publish(msg)
+        self.publisher_.publish(msg)"""
 
     def arm_srv_callback(self, request, response):
 
@@ -127,6 +154,7 @@ class BicopterLowlevelController(Node):
             self.get_logger().warn("Arming not possible, motor commands are too high.")
         else:
             self.is_armed = True
+            self.get_logger().warn("Bicopter ARMED")
             self.motor_left_command = self.motor_arm_value
             self.motor_right_command = self.motor_arm_value
             self.servo_left_command = 0.0
@@ -148,6 +176,7 @@ class BicopterLowlevelController(Node):
             self.motor_left.detach()
             self.motor_right.detach()
             self.is_armed = False
+            self.get_logger().warn("Bicopter disarmed")
             response.success = True
             response.message = "Bicopter disarmed."
 
