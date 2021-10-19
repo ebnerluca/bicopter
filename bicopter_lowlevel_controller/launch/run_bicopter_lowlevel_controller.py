@@ -13,7 +13,8 @@ def generate_launch_description():
                 namespace='bicopter',
                 executable='bicopter_lowlevel_controller_node',
                 name='bicopter_lowlevel_controller',
-                parameters=[parameters]
+                parameters=[parameters],
+                emulate_tty=True
                 )
     ld.add_action(node)
     return ld
