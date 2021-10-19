@@ -1,0 +1,3 @@
+bicopter_lowlevel_controller_node:
+  ros__parameters:
+    test_variable: 2.0

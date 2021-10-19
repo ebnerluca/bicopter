@@ -1,5 +1,6 @@
 from setuptools import setup
 from glob import glob
+import os
 
 package_name = 'bicopter_lowlevel_controller'
 
@@ -13,7 +14,8 @@ setup(
         ('share/' + package_name, ['package.xml']),
         # ... Other data files
         # Include all launch files. This is the most important line here!
-        ('share/' + package_name, glob('launch/*.py'))
+        ('share/' + package_name, glob('launch/*.py')),
+        (os.path.join('share', package_name, 'config'), glob('config/*.yaml'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
