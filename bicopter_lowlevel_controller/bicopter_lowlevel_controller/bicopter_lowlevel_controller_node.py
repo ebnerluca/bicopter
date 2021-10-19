@@ -28,7 +28,7 @@ class BicopterLowlevelController(Node):
         super().__init__('bicopter_lowlevel_controller')
 
         # TODO read from config
-        self.i = 0
+        # self.i = 0
         # pins
         self.servo_left_gpio_pin = 17
         self.servo_right_gpio_pin = 27
@@ -84,7 +84,7 @@ class BicopterLowlevelController(Node):
         self.disarm_srv = self.create_service(Trigger, 'disarm', self.disarm_srv_callback)
 
         # publishers
-        self.publisher_ = self.create_publisher(String, 'topic', 10)
+        # self.publisher_ = self.create_publisher(String, 'topic', 10)
 
         # subscribers
         self.commands_sub = self.create_subscription(String, 'commands', self.update_commands_callback, 10)
@@ -100,11 +100,11 @@ class BicopterLowlevelController(Node):
             self.motor_left.value = self.motor_left_command
             self.motor_right.value = self.motor_right_command
 
-        self.i = self.i + 1
+        """self.i = self.i + 1
         msg = String()
         msg.data = str(self.i)
         print(str(self.i))
-        self.publisher_.publish(msg)
+        self.publisher_.publish(msg)"""
 
     def arm_srv_callback(self, request, response):
 

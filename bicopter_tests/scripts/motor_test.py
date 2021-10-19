@@ -4,22 +4,23 @@ import time
 motor_left_gpio_pin = 5
 motor_left_min_signal = 1. / 1000.
 motor_left_max_signal = 1.5 / 1000.  # max 50% speed
-motor_arm_signal = 1.15 / 1000.
+motor_arm_signal = 1.25 / 1000.
 motor_arm_value = ((motor_arm_signal - motor_left_min_signal) * 2.0) / (motor_left_max_signal - motor_left_min_signal) - 1.0  # find servo value between [-1,1] that corresponds to arm signal
-
+print("motor arm value: " + str(motor_arm_value))
+time.sleep(2)
 print("Initializing servo with initial value: None ...")
 time.sleep(2)
 motor_left = Servo(pin=motor_left_gpio_pin,
-                   initial_value=None,
+                   initial_value=-1.0,
                    min_pulse_width=motor_left_min_signal,
                    max_pulse_width=motor_left_max_signal)
 print("Done.")
 
-print("Waiting 5 sec before arming...")
-time.sleep(5)
+print("Waiting 3 sec before arming...")
+time.sleep(3)
 motor_left.value = motor_arm_value
 print("ARMED.")
 
-
+time.sleep(2)
 
 
