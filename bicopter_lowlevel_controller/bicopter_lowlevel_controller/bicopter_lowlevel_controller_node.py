@@ -49,7 +49,6 @@ class BicopterLowlevelController(Node):
                                     ('servo_left_calibrated_max_angle', None),
                                     ('servo_right_calibrated_min_angle', None),
                                     ('servo_right_calibrated_max_angle', None)
-
         ])
 
         # GPIO pins
@@ -77,7 +76,7 @@ class BicopterLowlevelController(Node):
                                         (self.motor_pwm_max_signal-self.motor_pwm_min_signal)
 
         self.motor_arm_value = ((self.motor_arm_signal - self.motor_pwm_min_signal) * 2.0) / (
-                self.motor_pwm_max_signal - self.motor_pwm_min_signal) - 1.0
+                self.motor_limited_max_signal - self.motor_pwm_min_signal) - 1.0
 
         # calibration
         self.servo_left_calibrated_min_angle = self.get_parameter('servo_left_calibrated_min_angle').value
@@ -121,7 +120,7 @@ class BicopterLowlevelController(Node):
         self.disarm_srv = self.create_service(Trigger, 'disarm', self.disarm_srv_callback)
 
         # publishers
-        self.publisher_ = self.create_publisher(String, 'topic', 10)
+        # self.publisher_ = self.create_publisher(String, 'topic', 10)
 
         # subscribers
         self.commands_sub = self.create_subscription(String, 'commands', self.update_commands_callback, 10)
@@ -139,7 +138,6 @@ class BicopterLowlevelController(Node):
 
         """msg = String()
         msg.data = "hello"
-        print(str(self.i))
         self.publisher_.publish(msg)"""
 
     def arm_srv_callback(self, request, response):
