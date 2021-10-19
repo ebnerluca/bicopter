@@ -9,9 +9,9 @@ bicopter_lowlevel_controller:
       motor_right_gpio_pin: 6
 
       # Motor ESC protocol
-      motor_pwm_min_signal: 1.0 / 1000.0  # ESCs accept pwm signal with 50Hz, 1-2ms duty cycle
-      motor_pwm_max_signal: 2.0 / 1000.0
-      motor_arm_signal: 1.15 / 1000.
+      motor_pwm_min_signal: 0.001  # ESCs accept pwm signal with 50Hz, 1-2ms duty cycle
+      motor_pwm_max_signal: 0.002
+      motor_arm_signal: 0.00115
 
 
       # Safety Limits

@@ -60,7 +60,7 @@ class BicopterLowlevelController(Node):
         # Motor ESC protocol
         self.motor_pwm_min_signal = self.get_parameter('motor_pwm_min_signal').value
         self.motor_pwm_max_signal = self.get_parameter('motor_pwm_max_signal').value
-        self.motor_arm_signal = self.get_param('motor_arm_signal')
+        self.motor_arm_signal = self.get_parameter('motor_arm_signal').value
 
         # Safety Limits
         self.servo_left_min_angle = self.get_parameter('servo_left_min_angle').value
@@ -71,9 +71,9 @@ class BicopterLowlevelController(Node):
         self.motor_left_max_signal = self.get_parameter('motor_left_max_signal').value
         self.motor_right_min_signal = self.get_parameter('motor_right_min_signal').value
         self.motor_right_max_signal = self.get_parameter('motor_right_max_signal').value"""
-        self.motor_power_limit = self.get_parameter('motor_power_limit')
+        self.motor_power_limit = self.get_parameter('motor_power_limit').value
         self.motor_limited_max_signal = self.motor_pwm_min_signal + self.motor_power_limit * \
-                                        (self.motor_pwm_max_signal-self.motor_pwm_min_signal)
+                                        (self.motor_pwm_max_signal - self.motor_pwm_min_signal)
 
         self.motor_arm_value = ((self.motor_arm_signal - self.motor_pwm_min_signal) * 2.0) / (
                 self.motor_limited_max_signal - self.motor_pwm_min_signal) - 1.0
