@@ -27,8 +27,16 @@ class BicopterLowlevelController(Node):
     def __init__(self):
         super().__init__('bicopter_lowlevel_controller')
 
+        print("=======================================")
+
         # TODO read from config
-        # self.i = 0
+        self.declare_parameters(namespace='',
+                                parameters=[
+                                    ('test_variable', None)
+                                ])
+        self.test_variable = self.get_parameter('test_variable').get_parameter_value().string_value
+        print("TEST VARIABLE: " + str(self.test_variable))
+
         # pins
         self.servo_left_gpio_pin = 17
         self.servo_right_gpio_pin = 27
@@ -45,7 +53,8 @@ class BicopterLowlevelController(Node):
         self.motor_right_min_signal = 1. / 1000.
         self.motor_right_max_signal = 1.5 / 1000.  # max 50% speed
         self.motor_arm_signal = 1.15 / 1000.
-        self.motor_arm_value = ((self.motor_arm_signal - self.motor_left_min_signal) * 2.0) / (self.motor_left_max_signal - self.motor_left_min_signal) - 1.0
+        self.motor_arm_value = ((self.motor_arm_signal - self.motor_left_min_signal) * 2.0) / (
+                    self.motor_left_max_signal - self.motor_left_min_signal) - 1.0
 
         # calibration
         self.servo_left_calibrated_min_angle = -90.0  # deg, minimum possible angle when servo receives min() command
@@ -72,7 +81,7 @@ class BicopterLowlevelController(Node):
                                  max_pulse_width=self.motor_right_max_signal)
 
         # motor controller
-        self.motor_controller_timer = self.create_timer(1./50., self.apply_commands)  # apply new commands with 200Hz
+        self.motor_controller_timer = self.create_timer(1. / 50., self.apply_commands)  # apply new commands with 200Hz
         self.servo_left_command = 0.0  # measured in degrees
         self.servo_right_command = 0.0  # measured in degrees
         self.motor_left_command = -1.0  # measured from -1.0 (zero power) to 1.0 (max power)
