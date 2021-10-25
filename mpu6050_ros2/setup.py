@@ -1,4 +1,6 @@
 from setuptools import setup
+from glob import glob
+import os
 
 package_name = 'mpu6050_ros2'
 
@@ -10,6 +12,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name, glob('launch/*.py')),
+        (os.path.join('share', package_name, 'config'), glob('config/*.yaml'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -20,7 +24,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'mpu6050_ros2_node = mpu6050_ros2.mpu6050_ros2_node:main'
+            'mpu6050_node = mpu6050_ros2.mpu6050_ros2_node:main'
         ],
     },
 )

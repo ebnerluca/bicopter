@@ -1,0 +1,19 @@
+mpu6050:
+  mpu6050_node:
+    ros__parameters:
+
+      # adresses https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf
+      i2c_adress: 0x68
+      reg_powermgmt: 0x6b
+      reg_gyro_x: 0x43
+      reg_gyro_y: 0x45
+      reg_gyro_z: 0x47
+      reg_accel_x: 0x3b
+      reg_accel_y: 0x3d
+      reg_accel_z: 0x3f
+      gyro_scale_factor: 131  # gyro sensitivity scaling factor
+      accel_scale_factor: 16384  # accelerometer sensitivity scaling factor
+
+
+
+      frequency: 100.0  # [Hz]
