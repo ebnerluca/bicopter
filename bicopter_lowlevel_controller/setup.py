@@ -13,7 +13,6 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         # ... Other data files
-        # Include all launch files. This is the most important line here!
         ('share/' + package_name, glob('launch/*.py')),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml'))
     ],
