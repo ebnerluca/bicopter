@@ -15,12 +15,9 @@
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import String
-from std_srvs.srv import Trigger
 from bicopter_msgs.msg import SensorReadings
 
 import smbus2
-import math
 import numpy as np
 from tf_transformations import quaternion_from_euler
 
@@ -70,13 +67,11 @@ class MPU6050(Node):
         # timer
         self.readings_timer = self.create_timer(1. / self.frequency, self.update_readings)
 
-        # services
-        # self.arm_srv = self.create_service(Trigger, 'arm', self.arm_srv_callback)
-
         # publishers
         self.publisher = self.create_publisher(SensorReadings, 'imu_readings', 10)
 
-        # subscribers
+        self.get_logger().info("Running.")
+
 
     def update_readings(self):
 
@@ -107,11 +102,10 @@ class MPU6050(Node):
         self.readings_msg.w_x = gyro_x_rate
         self.readings_msg.w_y = gyro_y_rate
         self.readings_msg.w_z = gyro_z_rate
-
         self.publisher.publish(self.readings_msg)
 
     def read_word_2c(self, reg):
-        """Reads word from a register reg which is given as a two complement."""
+        """Reads word from a register reg which is given as 16 bit two complement."""
         high = self.bus.read_byte_data(self.i2c_adress, reg)
         low = self.bus.read_byte_data(self.i2c_adress, reg+1)
         value = (high << 8) + low
