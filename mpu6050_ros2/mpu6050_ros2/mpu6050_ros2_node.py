@@ -88,7 +88,7 @@ class MPU6050(Node):
         accel_z = self.read_word_2c(self.reg_accel_z) / self.accel_scale_factor
 
         # calculate roll, pitch angle from accelerometer data
-        accel_pitch = np.arctan2(accel_x, np.sqrt(accel_y*accel_y + accel_z * accel_z))  # * 180.0 / np.pi
+        accel_pitch = -np.arctan2(accel_x, np.sqrt(accel_y*accel_y + accel_z * accel_z))  # * 180.0 / np.pi
         accel_roll = np.arctan2(accel_y, np.sqrt(accel_x*accel_x + accel_z * accel_z))  # * 180.0 / np.pi
 
         self.roll = 0.98 * (self.roll + (1.0 / self.frequency) * gyro_x_rate) + 0.02 * accel_roll
