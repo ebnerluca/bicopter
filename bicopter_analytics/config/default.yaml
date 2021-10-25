@@ -1,0 +1,5 @@
+bicopter_analytics:
+  bicopter_analytics_node:
+    ros__parameters:
+
+      imu_readings_topic: "/mpu6050/imu_readings"
