@@ -11,9 +11,11 @@ mpu6050:
       reg_accel_x: 0x3b
       reg_accel_y: 0x3d
       reg_accel_z: 0x3f
+
+      # mpu6050 params
       gyro_scale_factor: 131  # gyro sensitivity scaling factor
       accel_scale_factor: 16384  # accelerometer sensitivity scaling factor
 
-
-
+      # node params
       frequency: 100.0  # [Hz]
+      imu_readings_topic: "imu_readings"

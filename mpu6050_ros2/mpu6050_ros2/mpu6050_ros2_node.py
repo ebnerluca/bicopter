@@ -41,6 +41,7 @@ class MPU6050(Node):
                                     ('gyro_scale_factor', None),
                                     ('accel_scale_factor', None),
                                     ('frequency', None),
+                                    ('imu_readings_topic', None)
         ])
 
         # read parameters
@@ -55,6 +56,7 @@ class MPU6050(Node):
         self.gyro_scale_factor = self.get_parameter('gyro_scale_factor').value
         self.accel_scale_factor = self.get_parameter('accel_scale_factor').value
         self.frequency = self.get_parameter('frequency').value
+        self.imu_readings_topic = self.get_parameter('imu_readings_topic').value
 
         self.roll = 0.0  # TODO initialize from gyro
         self.pitch = 0.0
@@ -68,7 +70,7 @@ class MPU6050(Node):
         self.readings_timer = self.create_timer(1. / self.frequency, self.update_readings)
 
         # publishers
-        self.publisher = self.create_publisher(SensorReadings, 'imu_readings', 10)
+        self.publisher = self.create_publisher(SensorReadings, self.imu_readings_topic, 10)
 
         self.get_logger().info("Running.")
 
@@ -102,6 +104,7 @@ class MPU6050(Node):
         self.readings_msg.w_x = gyro_x_rate
         self.readings_msg.w_y = gyro_y_rate
         self.readings_msg.w_z = gyro_z_rate
+        self.readings_msg.header.stamp = self.get_clock().now().to_msg()
         self.publisher.publish(self.readings_msg)
 
     def read_word_2c(self, reg):
