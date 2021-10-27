@@ -209,8 +209,6 @@ class BicopterLowlevelController(Node):
         self.servo_left_command = np.clip(a=commands.b1 * 180.0 / np.pi,
                                           a_min=self.servo_limit_min_angle,
                                           a_max=self.servo_limit_max_angle)
-        self.get_logger().info("servo_left_command: " + str(self.servo_left_command))
-        self.get_logger().info("servo_left_pulse: " + str(self.servo_left.pulse_width))
         self.servo_right_command = np.clip(a=commands.b2 * 180.0 / np.pi,
                                           a_min=self.servo_limit_min_angle,
                                           a_max=self.servo_limit_max_angle)
@@ -218,13 +216,23 @@ class BicopterLowlevelController(Node):
         self.motor_right_command = np.clip(a=commands.r2/1000.0 - 1.0, a_min=-1.0, a_max=1.0)
         self.command_current_stamp = Time.from_msg(commands.header.stamp)
 
+    def on_shutdown(self):
+        
+        self.get_logger().info("Shutting down ...")
+        self.disarm()
+
 
 def main(args=None):
     rclpy.init(args=args)
 
     node = BicopterLowlevelController()
 
-    rclpy.spin(node)
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+
+    node.on_shutdown()
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
