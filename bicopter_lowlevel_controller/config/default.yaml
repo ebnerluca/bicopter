@@ -13,16 +13,14 @@ bicopter_lowlevel_controller:
       motor_pwm_max_signal: 0.002
       motor_arm_signal: 0.00115
 
+      # Servo PWM
+      servo_pwm_min_pulse_width: 0.0005
+      servo_pwm_max_pulse_width: 0.0025
 
       # Safety Limits
-      servo_left_min_angle: -45.0  # deg
-      servo_left_max_angle: 45.0
-      servo_right_min_angle: -45.0
-      servo_right_max_angle: 45.0
-      # motor_left_min_signal: 1. / 1000
-      # motor_left_max_signal: 1.5 / 1000.  # max 50% speed
-      # motor_right_min_signal: 1. / 1000.
-      # motor_right_max_signal: 1.5 / 1000.  # max 50% speed
+
+      servo_limit_min_angle: -89.0
+      servo_limit_max_angle: 89.0
       motor_power_limit: 0.5  # [0,1], 1.0 means max power
 
       # Servo Calibration
@@ -30,4 +28,7 @@ bicopter_lowlevel_controller:
       servo_left_calibrated_max_angle: 90.0  # deg, maximum possible angle when servo receives max() command
       servo_right_calibrated_min_angle: -90.0  # deg, minimum possible angle when servo receives min() command
       servo_right_calibrated_max_angle: 90.0  # deg, maximum possible angle when servo receives max() command
+
+      # topics
+      actuator_commands_topic: "actuator_commands"
 
