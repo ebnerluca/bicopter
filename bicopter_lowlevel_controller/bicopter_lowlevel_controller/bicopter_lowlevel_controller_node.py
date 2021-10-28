@@ -174,8 +174,8 @@ class BicopterLowlevelController(Node):
             self.get_logger().warn("Bicopter ARMED")
             self.motor_left_command = self.motor_arm_value
             self.motor_right_command = self.motor_arm_value
-            self.servo_left_command = 0.0
-            self.servo_right_command = 0.0
+            # self.servo_left_command = 0.0
+            # self.servo_right_command = 0.0
             response.success = True
             response.message = "Bicopter armed."
 
@@ -217,7 +217,7 @@ class BicopterLowlevelController(Node):
         self.command_current_stamp = Time.from_msg(commands.header.stamp)
 
     def on_shutdown(self):
-        
+
         self.get_logger().info("Shutting down ...")
         self.disarm()
 
@@ -227,12 +227,13 @@ def main(args=None):
 
     node = BicopterLowlevelController()
 
+    # adding shutdown method to context shutdown
+    rclpy.get_default_context().on_shutdown(node.on_shutdown)
+
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
-
-    node.on_shutdown()
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
