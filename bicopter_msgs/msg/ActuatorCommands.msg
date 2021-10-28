@@ -4,6 +4,6 @@ std_msgs/Header header
 float32 b1
 float32 b2
 
-# propeller speeds, should be in range [0,1000]
+# propeller speeds, should be in range [0,1]
 float32 r1  # left
 float32 r2  # right
