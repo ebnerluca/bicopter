@@ -79,7 +79,6 @@ class BicopterLowlevelController(Node):
         self.motor_power_limit = self.get_parameter('motor_power_limit').value
         self.motor_limited_max_signal = self.motor_pwm_min_signal + self.motor_power_limit * \
                                         (self.motor_pwm_max_signal - self.motor_pwm_min_signal)
-
         self.motor_arm_value = ((self.motor_arm_signal - self.motor_pwm_min_signal) * 2.0) / (
                 self.motor_limited_max_signal - self.motor_pwm_min_signal) - 1.0
 
@@ -145,10 +144,10 @@ class BicopterLowlevelController(Node):
         if self.is_armed:
 
             # check stamp
-            """duration = self.get_clock().now() - self.command_current_stamp
+            duration = self.get_clock().now() - self.command_current_stamp
             if duration > Duration(seconds=1.0):
                 self.get_logger().warn("command is too old!")
-                self.disarm()"""
+                self.disarm()
 
             self.servo_left.angle = self.servo_left_command
             self.servo_right.angle = self.servo_right_command
@@ -165,15 +164,15 @@ class BicopterLowlevelController(Node):
             response.success = True
             response.message = "Bicopter already armed."
             self.get_logger().warn("Arming not possible, Bicopter already armed.")
-        elif (self.motor_left_command > self.motor_arm_signal) or (self.motor_right_command > self.motor_arm_signal):
+        elif (self.motor_left_command > self.motor_arm_value) or (self.motor_right_command > self.motor_arm_value):
             response.success = False
             response.message = "Arming not possible, motor commands are too high."
             self.get_logger().warn("Arming not possible, motor commands are too high.")
         else:
             self.is_armed = True
             self.get_logger().warn("Bicopter ARMED")
-            self.motor_left_command = self.motor_arm_value
-            self.motor_right_command = self.motor_arm_value
+            # self.motor_left_command = self.motor_arm_value
+            # self.motor_right_command = self.motor_arm_value
             # self.servo_left_command = 0.0
             # self.servo_right_command = 0.0
             response.success = True
@@ -202,7 +201,6 @@ class BicopterLowlevelController(Node):
         self.is_armed = False
         self.get_logger().warn("Bicopter disarmed")
 
-
     def update_commands_callback(self, commands):
 
         # clip commands to ensure boundaries
@@ -212,9 +210,10 @@ class BicopterLowlevelController(Node):
         self.servo_right_command = np.clip(a=commands.b2 * 180.0 / np.pi,
                                           a_min=self.servo_limit_min_angle,
                                           a_max=self.servo_limit_max_angle)
-        self.motor_left_command = np.clip(a=commands.r1/1000.0 - 1.0, a_min=-1.0, a_max=1.0)
-        self.motor_right_command = np.clip(a=commands.r2/1000.0 - 1.0, a_min=-1.0, a_max=1.0)
-        self.command_current_stamp = Time.from_msg(commands.header.stamp)
+        self.motor_left_command = np.clip(a=commands.r1 * 2 - 1.0, a_min=self.motor_arm_value, a_max=1.0)
+        self.motor_right_command = np.clip(a=commands.r2 * 2 - 1.0, a_min=self.motor_arm_value, a_max=1.0)
+        # self.command_current_stamp = Time.from_msg(commands.header.stamp)
+        self.command_current_stamp = self.get_clock().now()  # This is potentially unsafe
 
     def on_shutdown(self):
 
