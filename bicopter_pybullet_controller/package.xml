@@ -7,7 +7,8 @@
   <maintainer email="ebnerl@ethz.ch">ebnerl</maintainer>
   <license>TODO: License declaration</license>
 
-  <depend>bicopter_msgs</depend>
+  <exec_depend>bicopter_msgs</exec_depend>
+  <exec_depend>bicopter_model</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
