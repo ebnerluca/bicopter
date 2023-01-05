@@ -13,7 +13,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         # ... Other data files
-        ('share/' + package_name, glob('launch/*.py')),
+        ('share/' + package_name, glob('launch/*.launch.py')),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml'))
     ],
     install_requires=['setuptools'],
