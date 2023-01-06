@@ -8,8 +8,8 @@ bicopter_pybullet_controller:
       motor_power_limit: 0.5  # [0,1], 1.0 means max power
 
       # topics
-      actuator_commands_topic: "actuator_commands"
-      imu_readings_topic: "/mpu6050/imu_readings"
+      actuator_commands_topic: "/bicopter/actuator_commands"
+      imu_readings_topic: "/bicopter/imu_readings"
 
       # bicopter model
       urdf_path: "/home/ebnerl/dev_ws/src/bicopter/bicopter_model/urdf/bicopter_urdf.urdf"

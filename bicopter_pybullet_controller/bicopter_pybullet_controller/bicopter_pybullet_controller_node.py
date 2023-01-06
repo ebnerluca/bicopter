@@ -130,12 +130,14 @@ class BicopterLowlevelController(Node):
         # get readings
         pos, orientation = p.getBasePositionAndOrientation(self.bicopter_id)
         # rpy = np.around(np.array(p.getEulerFromQuaternion(orientation)), 2)
+        self.imu_readings.z = pos[2]
         self.imu_readings.q_x = orientation[0]
         self.imu_readings.q_y = orientation[1]
         self.imu_readings.q_z = orientation[2]
         self.imu_readings.q_w = orientation[3]
 
         vel, angular_vel = p.getBaseVelocity(self.bicopter_id)
+        self.imu_readings.v_z = vel[2]
         rotmat = np.array(p.getMatrixFromQuaternion(orientation)).reshape((3, 3), order="F")
         drpy = rotmat.dot(np.array(angular_vel))
 
