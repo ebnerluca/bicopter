@@ -35,7 +35,7 @@ endif()
 # install
 install(DIRECTORY
   urdf
-  DESTINATION share/${PROJECT_NAME}/urdf
+  DESTINATION share/${PROJECT_NAME}
 )
 
 ament_package()
