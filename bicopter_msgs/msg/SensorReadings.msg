@@ -10,3 +10,7 @@ float32 q_w
 float32 w_x
 float32 w_y
 float32 w_z
+
+# height above ground
+float32 z
+float32 v_z
