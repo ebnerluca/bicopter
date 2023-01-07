@@ -9,7 +9,7 @@ from rclpy.node import Node
 import numpy as np
 from tf_transformations import euler_from_quaternion
 
-from bicopter_msgs.msg import ActuatorCommands, SensorReadings
+from bicopter_msgs.msg import AngleCommands, ActuatorCommands, SensorReadings
 
 
 class BicopterAngleController(Node):
@@ -21,6 +21,7 @@ class BicopterAngleController(Node):
         
         # declare parameters
         self.declare_parameter("controller_rate")
+        self.declare_parameter("angle_commands_topic")
         self.declare_parameter("actuator_commands_topic")
         self.declare_parameter("imu_readings_topic")
         self.declare_parameter("gains.roll.kp")
@@ -29,11 +30,14 @@ class BicopterAngleController(Node):
         self.declare_parameter("gains.pitch.kd")
         self.declare_parameter("gains.yaw.kp")
         self.declare_parameter("gains.yaw.kd")
+        self.declare_parameter("gains.height.kp")
+        self.declare_parameter("gains.height.kd")
         self.declare_parameter("model_properties.package")
         self.declare_parameter("model_properties.file")
 
         # get parameters
         self.controllerRate = self.get_parameter("controller_rate").value
+        self.angleCommandsTopic = self.get_parameter("angle_commands_topic").value
         self.actuatorCommandsTopic = self.get_parameter("actuator_commands_topic").value
         self.IMUreadingsTopic = self.get_parameter("imu_readings_topic").value
         self.r_kp = self.get_parameter("gains.roll.kp").value
@@ -42,6 +46,8 @@ class BicopterAngleController(Node):
         self.p_kd = self.get_parameter("gains.pitch.kd").value
         self.y_kp = self.get_parameter("gains.yaw.kp").value
         self.y_kd = self.get_parameter("gains.yaw.kd").value
+        self.z_kp = self.get_parameter("gains.height.kp").value
+        self.z_kd = self.get_parameter("gains.height.kd").value
         model_properties_package = self.get_parameter("model_properties.package").value
         model_properties_file = self.get_parameter("model_properties.file").value
 
@@ -71,7 +77,8 @@ class BicopterAngleController(Node):
         # Subscribers
         self.create_subscription(SensorReadings, self.IMUreadingsTopic, self.imu_readings_callback, 1)
         self.IMUreadings = None  # [q_x, q_y, q_z, q_w, w_x, w_y, w_z]
-
+        self.create_subscription(AngleCommands, self.angleCommandsTopic, self.angle_commands_callback, 1)
+        self.angleCommands = AngleCommands()
         # Main loop for publishing commands with fixed freq
         self.create_timer(1.0/self.controllerRate, self.publish_commands)
 
@@ -82,16 +89,19 @@ class BicopterAngleController(Node):
         with open(path.join(package_path, file), "r") as f:
             return yaml_load(f)
 
+    def angle_commands_callback(self, commands):
+        self.angleCommands = commands
+
     def imu_readings_callback(self, readings):
 
         q = [readings.q_x, readings.q_y, readings.q_z, readings.q_w]
         r, p, y = euler_from_quaternion(q)
 
         # PD controller
-        ddr = self.r_kp * (0.0 - r) + self.r_kd * (0.0 - readings.w_x)
-        ddp = self.p_kp * (0.0 - p) + self.p_kd * (0.0 - readings.w_y)
-        ddy = self.y_kp * (0.0 - y) + self.y_kd * (0.0 - readings.w_z)
-        throttle = 8.0 * (1.0 - readings.z) + 1.0 * (0.0 - readings.v_z)
+        ddr = self.r_kp * (self.angleCommands.r - r) + self.r_kd * (self.angleCommands.w_x - readings.w_x)
+        ddp = self.p_kp * (self.angleCommands.p - p) + self.p_kd * (self.angleCommands.w_y - readings.w_y)
+        ddy = self.y_kp * (self.angleCommands.y - y) + self.y_kd * (self.angleCommands.w_z - readings.w_z)
+        throttle = self.z_kp * (self.angleCommands.z - readings.z) + self.z_kd * (self.angleCommands.v_z - readings.v_z)
 
         # update actuator commands
         # self.jacobian = self.get_jacobian()  # if dynamic jacobian is used
