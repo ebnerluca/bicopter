@@ -43,7 +43,7 @@ class BicopterLowlevelController(Node):
                                     ('servo_limit_max_angle', None),
 
                                     ('actuator_commands_topic', None),
-                                    ('imu_readings_topic', None),
+                                    ('sensor_readings_topic', None),
 
                                     ('model.package', None),
                                     ('model.file', None),
@@ -58,7 +58,7 @@ class BicopterLowlevelController(Node):
         self.motor_arm_value = 0.0
         # topics
         self.actuator_commands_topic = self.get_parameter('actuator_commands_topic').value
-        self.imu_readings_topic = self.get_parameter('imu_readings_topic').value
+        self.sensor_readings_topic = self.get_parameter('sensor_readings_topic').value
         # URDF
         model_package = get_package_share_directory(self.get_parameter('model.package').value)
         model_file = self.get_parameter('model.file').value
@@ -93,9 +93,9 @@ class BicopterLowlevelController(Node):
         self.arm_srv = self.create_service(Trigger, '/bicopter/arm', self.arm_srv_callback)
         self.disarm_srv = self.create_service(Trigger, '/bicopter/disarm', self.disarm_srv_callback)
 
-        # imu publisher
-        self.imu_publisher = self.create_publisher(SensorReadings, self.imu_readings_topic, 5)
-        self.imu_readings = SensorReadings()
+        # sensor publisher
+        self.sensor_readings_publisher = self.create_publisher(SensorReadings, self.sensor_readings_topic, 5)
+        self.sensor_readings = SensorReadings()
 
         # subscribers
         self.commands_sub = self.create_subscription(ActuatorCommands, self.actuator_commands_topic, self.update_commands_callback, 10)
@@ -136,23 +136,27 @@ class BicopterLowlevelController(Node):
         # get readings
         pos, orientation = p.getBasePositionAndOrientation(self.bicopter_id)
         # rpy = np.around(np.array(p.getEulerFromQuaternion(orientation)), 2)
-        self.imu_readings.z = pos[2]
-        self.imu_readings.q_x = orientation[0]
-        self.imu_readings.q_y = orientation[1]
-        self.imu_readings.q_z = orientation[2]
-        self.imu_readings.q_w = orientation[3]
+        self.sensor_readings.x = pos[0]
+        self.sensor_readings.y = pos[1]
+        self.sensor_readings.z = pos[2]
+        self.sensor_readings.q_x = orientation[0]
+        self.sensor_readings.q_y = orientation[1]
+        self.sensor_readings.q_z = orientation[2]
+        self.sensor_readings.q_w = orientation[3]
 
         vel, angular_vel = p.getBaseVelocity(self.bicopter_id)
-        self.imu_readings.v_z = vel[2]
+        self.sensor_readings.v_x = vel[0]
+        self.sensor_readings.v_y = vel[1]
+        self.sensor_readings.v_z = vel[2]
         rotmat = np.array(p.getMatrixFromQuaternion(orientation)).reshape((3, 3), order="F")
         drpy = rotmat.dot(np.array(angular_vel))
 
-        self.imu_readings.w_x = drpy[0]
-        self.imu_readings.w_y = drpy[1]
-        self.imu_readings.w_z = drpy[2]
+        self.sensor_readings.w_x = drpy[0]
+        self.sensor_readings.w_y = drpy[1]
+        self.sensor_readings.w_z = drpy[2]
 
         # publish readings
-        self.imu_publisher.publish(self.imu_readings)
+        self.sensor_readings_publisher.publish(self.sensor_readings)
 
     def arm_srv_callback(self, request, response):
 

@@ -8,7 +8,7 @@ bicopter_pybullet_controller:
 
     # topics
     actuator_commands_topic: "/bicopter/actuator_commands"
-    imu_readings_topic: "/bicopter/imu_readings"
+    sensor_readings_topic: "/bicopter/sensor_readings"
 
     # bicopter model
     model:
