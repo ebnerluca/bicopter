@@ -90,8 +90,8 @@ class BicopterLowlevelController(Node):
 
         # services
         self.is_armed = False
-        self.arm_srv = self.create_service(Trigger, 'arm', self.arm_srv_callback)
-        self.disarm_srv = self.create_service(Trigger, 'disarm', self.disarm_srv_callback)
+        self.arm_srv = self.create_service(Trigger, '/bicopter/arm', self.arm_srv_callback)
+        self.disarm_srv = self.create_service(Trigger, '/bicopter/disarm', self.disarm_srv_callback)
 
         # imu publisher
         self.imu_publisher = self.create_publisher(SensorReadings, self.imu_readings_topic, 5)
