@@ -10,11 +10,12 @@ def generate_launch_description():
     parameters = os.path.join(get_package_share_directory('bicopter_pybullet_controller'), 'config', 'default.yaml')
 
     node = Node(package='bicopter_pybullet_controller',
-                namespace='bicopter_pybullet_controller',
-                executable='bicopter_pybullet_controller_node',
-                name='bicopter_pybullet_controller_node',
+                executable='bicopter_pybullet_controller',
+                name='bicopter_pybullet_controller',
+                output='screen',
                 parameters=[parameters],
                 emulate_tty=True
                 )
+
     ld.add_action(node)
     return ld

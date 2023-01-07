@@ -25,7 +25,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'bicopter_pybullet_controller_node = bicopter_pybullet_controller.bicopter_pybullet_controller_node:main'
+            'bicopter_pybullet_controller = bicopter_pybullet_controller.bicopter_pybullet_controller:main'
         ],
     },
 )

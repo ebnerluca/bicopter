@@ -25,6 +25,9 @@ import pybullet_data
 
 import numpy as np
 
+from ament_index_python import get_package_share_directory
+from os.path import join
+
 
 class BicopterLowlevelController(Node):
 
@@ -42,7 +45,8 @@ class BicopterLowlevelController(Node):
                                     ('actuator_commands_topic', None),
                                     ('imu_readings_topic', None),
 
-                                    ('urdf_path', None),
+                                    ('model.package', None),
+                                    ('model.file', None),
 
                                     ('prop_c1', None)
         ])
@@ -56,7 +60,9 @@ class BicopterLowlevelController(Node):
         self.actuator_commands_topic = self.get_parameter('actuator_commands_topic').value
         self.imu_readings_topic = self.get_parameter('imu_readings_topic').value
         # URDF
-        self.urdf_path = self.get_parameter('urdf_path').value
+        model_package = get_package_share_directory(self.get_parameter('model.package').value)
+        model_file = self.get_parameter('model.file').value
+        self.urdf_path = join(model_package, model_file)
         # prop c1 constant
         self.prop_c1 = self.get_parameter('prop_c1').value
 
