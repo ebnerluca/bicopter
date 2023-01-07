@@ -1,23 +1,15 @@
 #!/usr/bin/env python3
 
-# import geometry_msgs.msg
+from ament_index_python.packages import get_package_share_directory
+from os import path
+from yaml import load as yaml_load
+
 import rclpy
 from rclpy.node import Node
-
 import numpy as np
-
-# from std_srvs.srv import Trigger
-# from std_msgs.msg import String
-# from tf.transformations import euler_from_quaternion, quaternion_matrix
 from tf_transformations import euler_from_quaternion
 
 from bicopter_msgs.msg import ActuatorCommands, SensorReadings
-# from sensor_msgs.msg import Image, CameraInfo
-# from geometry_msgs.msg import TransformStamped
-
-from ament_index_python.packages import get_package_share_directory
-from os import path
-import yaml
 
 
 class BicopterAngleController(Node):
@@ -26,24 +18,6 @@ class BicopterAngleController(Node):
     def __init__(self):
         super().__init__('bicopter_angle_controller')
         self.log("__init__")
-
-        # parameters
-        # self.controllerRate = rospy.get_param("controller_rate")
-        # self.actuatorCommandsTopic = rospy.get_param("actuator_commands_topic")
-        # self.IMUreadingsTopic = rospy.get_param("imu_readings_topic")
-        # self.r_kp = rospy.get_param("gains/roll/kp")
-        # self.r_kd = rospy.get_param("gains/roll/kd")
-        # self.p_kp = rospy.get_param("gains/pitch/kp")
-        # self.p_kd = rospy.get_param("gains/pitch/kd")
-        # self.y_kp = rospy.get_param("gains/yaw/kp")
-        # self.y_kd = rospy.get_param("gains/yaw/kd")
-        # self.bicopter_arm_l1 = rospy.get_param("/bicopter_model/bicopter_arm_l1")
-        # self.bicopter_arm_l2 = rospy.get_param("/bicopter_model/bicopter_arm_l2")
-        # self.bicopter_Ixx = rospy.get_param("/bicopter_model/bicopter_Ixx")
-        # self.bicopter_Iyy = rospy.get_param("/bicopter_model/bicopter_Iyy")
-        # self.bicopter_Izz = rospy.get_param("/bicopter_model/bicopter_Izz")
-        # self.bicopter_mass = rospy.get_param("/bicopter_model/bicopter_mass")
-        # self.bicopter_prop_c1 = rospy.get_param("/bicopter_model/bicopter_prop_lift_coeff")
         
         # declare parameters
         self.declare_parameter("controller_rate")
@@ -57,14 +31,6 @@ class BicopterAngleController(Node):
         self.declare_parameter("gains.yaw.kd")
         self.declare_parameter("model_properties.package")
         self.declare_parameter("model_properties.file")
-
-        # self.declare_parameter("/bicopter_model/bicopter_arm_l1", None)
-        # self.declare_parameter("/bicopter_model/bicopter_arm_l2", None)
-        # self.declare_parameter("/bicopter_model/bicopter_Ixx", None)
-        # self.declare_parameter("/bicopter_model/bicopter_Iyy", None)
-        # self.declare_parameter("/bicopter_model/bicopter_Izz", None)
-        # self.declare_parameter("/bicopter_model/bicopter_mass", None)
-        # self.declare_parameter("/bicopter_model/bicopter_prop_lift_coeff", None)
 
         # get parameters
         self.controllerRate = self.get_parameter("controller_rate").value
@@ -95,36 +61,26 @@ class BicopterAngleController(Node):
         self.jacobian = self.get_jacobian()
 
         # Publishers
-        # self.actuatorCommandPublisher = rospy.Publisher(self.actuatorCommandsTopic, ActuatorCommands, queue_size=10)
         self.actuatorCommandPublisher = self.create_publisher(ActuatorCommands, self.actuatorCommandsTopic, 1)
         self.actuatorCommands = ActuatorCommands()  # [speed_left, speed_right, servo_left, servo_right]
-        # self.actuatorCommands.header.stamp = rospy.time.now()
         self.actuatorCommands.r1 = 0.0
         self.actuatorCommands.r2 = 0.0
         self.actuatorCommands.b1 = 0.0
         self.actuatorCommands.b2 = 0.0
-        """self.r1 = 0.0  # speed left
-        self.r2 = 0.0  # speed right
-        self.b1 = 0.0  # servo_left
-        self.b2 = 0.0  # servo_right"""
 
         # Subscribers
-        # rospy.Subscriber(self.IMUreadingsTopic, SensorReadings, self.imu_readings_callback)
         self.create_subscription(SensorReadings, self.IMUreadingsTopic, self.imu_readings_callback, 1)
         self.IMUreadings = None  # [q_x, q_y, q_z, q_w, w_x, w_y, w_z]
 
-        # Services
-        # rospy.Service("call_service", Trigger, self.service_callback)
-
-        # publish commands
-        self.create_timer(1.0/self.controllerRate, self.run)
+        # Main loop for publishing commands with fixed freq
+        self.create_timer(1.0/self.controllerRate, self.publish_commands)
 
     def load_model_properties(self, package, file):
         print(f"loading package {package} and file {file}")
         package_path = get_package_share_directory(package)
         
         with open(path.join(package_path, file), "r") as f:
-            return yaml.load(f)
+            return yaml_load(f)
 
     def imu_readings_callback(self, readings):
 
@@ -157,12 +113,12 @@ class BicopterAngleController(Node):
         k3 = self.bicopter_arm_l1 * self.bicopter_prop_c1 / self.bicopter_Izz
 
         # linearized jacobian around current state
-        """jacobian = np.array([
-            [k1 * np.cos(self.b1) * self.r1, -k1 * np.cos(self.b2) * self.r2, -k1 * np.sin(self.b1) * self.r1 * self.r1, -k1 * np.sin(self.b1) * self.r2 * self.r2],
-            [k2 * np.sin(self.b1) * self.r1, k2 * np.sin(self.b2) * self.r2, k2 * np.cos(self.b1) * self.r1 * self.r1, k2 * np.cos(self.b1) * self.r2 * self.r2],
-            [-k3 * np.sin(self.b1) * self.r1, k3 * np.sin(self.b2) * self.r2, -k3 * np.cos(self.b1) * self.r1 * self.r1, k3 * np.cos(self.b1) * self.r2 * self.r2],
-            [self.bicopter_prop_c1 * self.r1 / self.bicopter_mass, self.bicopter_prop_c1 + self.r2 / self.bicopter_mass, 0.0, 0.0]
-        ])"""
+        # jacobian = np.array([
+        #     [k1 * np.cos(self.b1) * self.r1, -k1 * np.cos(self.b2) * self.r2, -k1 * np.sin(self.b1) * self.r1 * self.r1, -k1 * np.sin(self.b1) * self.r2 * self.r2],
+        #     [k2 * np.sin(self.b1) * self.r1, k2 * np.sin(self.b2) * self.r2, k2 * np.cos(self.b1) * self.r1 * self.r1, k2 * np.cos(self.b1) * self.r2 * self.r2],
+        #     [-k3 * np.sin(self.b1) * self.r1, k3 * np.sin(self.b2) * self.r2, -k3 * np.cos(self.b1) * self.r1 * self.r1, k3 * np.cos(self.b1) * self.r2 * self.r2],
+        #     [self.bicopter_prop_c1 * self.r1 / self.bicopter_mass, self.bicopter_prop_c1 + self.r2 / self.bicopter_mass, 0.0, 0.0]
+        # ])
 
         # linearized jacobian around equilibrium
         r_eq = self.bicopter_mass * 9.81 / (2.0 * self.bicopter_prop_c1)
@@ -175,36 +131,10 @@ class BicopterAngleController(Node):
 
         return jacobian
 
-    def service_callback(self, request):
-        response = TriggerResponse()
-        response.success = True
-        response.message = "Placeholder."
-
-        self.log("Placeholder.")
-        return response
-
     def log(self, stuff):
         self.get_logger().info("[BicopterAngleController]: " + stuff)
 
-    # Main Loop
-    def run(self):
-
-        # rate = rospy.Rate(self.controllerRate)
-
-        # while not rospy.is_shutdown():
-
-        #     # publish actuator commands
-        #     self.actuatorCommandPublisher.publish(self.actuatorCommands)
-
-        #     # update state
-        #     """self.r1 = self.actuatorCommands.r1
-        #     self.r2 = self.actuatorCommands.r2
-        #     self.b1 = self.actuatorCommands.b1
-        #     self.b2 = self.actuatorCommands.b2"""
-
-        #     # wait
-        #     rate.sleep()
-
+    def publish_commands(self):
         self.actuatorCommandPublisher.publish(self.actuatorCommands)
 
     # On ROS shutdown
@@ -232,18 +162,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
-    # # Initialize node and name it.
-    # rospy.init_node('bicopter_angle_controller')
-
-    # try:
-    #     node = BicopterAngleController()
-    #     node.log("Node is running.")
-    #     node.run()
-
-    #     rospy.spin()
-
-    #     rospy.on_shutdown(node.on_shutdown)
-
-    # except rospy.ROSInterruptException:
-    #     pass

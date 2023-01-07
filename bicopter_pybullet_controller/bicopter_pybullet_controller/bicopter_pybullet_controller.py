@@ -160,10 +160,11 @@ class BicopterLowlevelController(Node):
             response.success = True
             response.message = "Bicopter already armed."
             self.get_logger().warn("Arming not possible, Bicopter already armed.")
-            """elif (self.motor_left_command > self.motor_arm_value) or (self.motor_right_command > self.motor_arm_value):
-            response.success = False
-            response.message = "Arming not possible, motor commands are too high."
-            self.get_logger().warn("Arming not possible, motor commands are too high.")"""
+        # check if motor commands too high
+        # elif (self.motor_left_command > self.motor_arm_value) or (self.motor_right_command > self.motor_arm_value):
+        #     response.success = False
+        #     response.message = "Arming not possible, motor commands are too high."
+        #     self.get_logger().warn("Arming not possible, motor commands are too high.")
         else:
             self.is_armed = True
             self.get_logger().warn("Bicopter ARMED")
