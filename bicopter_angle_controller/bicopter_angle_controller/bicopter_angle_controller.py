@@ -23,7 +23,7 @@ class BicopterAngleController(Node):
         self.declare_parameter("controller_rate")
         self.declare_parameter("angle_commands_topic")
         self.declare_parameter("actuator_commands_topic")
-        self.declare_parameter("imu_readings_topic")
+        self.declare_parameter("sensor_readings_topic")
         self.declare_parameter("limits.roll")
         self.declare_parameter("limits.pitch")
         self.declare_parameter("limits.height")
@@ -46,7 +46,7 @@ class BicopterAngleController(Node):
         self.controllerRate = self.get_parameter("controller_rate").value
         self.angleCommandsTopic = self.get_parameter("angle_commands_topic").value
         self.actuatorCommandsTopic = self.get_parameter("actuator_commands_topic").value
-        self.IMUreadingsTopic = self.get_parameter("imu_readings_topic").value
+        self.sensorReadingsTopic = self.get_parameter("sensor_readings_topic").value
         self.r_max = self.get_parameter("limits.roll").value
         self.p_max = self.get_parameter("limits.pitch").value
         self.z_max = self.get_parameter("limits.height").value
@@ -89,8 +89,8 @@ class BicopterAngleController(Node):
         self.actuatorCommands.b2 = 0.0
 
         # Subscribers
-        self.create_subscription(SensorReadings, self.IMUreadingsTopic, self.imu_readings_callback, 1)
-        self.IMUreadings = None  # [q_x, q_y, q_z, q_w, w_x, w_y, w_z]
+        self.create_subscription(SensorReadings, self.sensorReadingsTopic, self.sensor_readings_callback, 1)
+        self.sensorReadings = None  # [q_x, q_y, q_z, q_w, w_x, w_y, w_z]
         self.create_subscription(AngleCommands, self.angleCommandsTopic, self.angle_commands_callback, 1)
         self.angleCommands = AngleCommands()
         # Main loop for publishing commands with fixed freq
@@ -113,7 +113,7 @@ class BicopterAngleController(Node):
         self.angleCommands.w_z = np.clip(commands.w_z, -self.wz_max, self.wz_max)
         self.angleCommands.v_z = np.clip(commands.v_z, -self.vz_max, self.vz_max)
 
-    def imu_readings_callback(self, readings):
+    def sensor_readings_callback(self, readings):
 
         q = [readings.q_x, readings.q_y, readings.q_z, readings.q_w]
         r, p, y = euler_from_quaternion(q)

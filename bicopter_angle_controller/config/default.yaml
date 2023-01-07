@@ -7,7 +7,7 @@ bicopter_angle_controller:
     # subscriber topics
     angle_commands_topic: /bicopter/angle_commands
     actuator_commands_topic: /bicopter/actuator_commands
-    imu_readings_topic: /bicopter/imu_readings
+    sensor_readings_topic: /bicopter/sensor_readings
 
     # angle limits
     limits:
