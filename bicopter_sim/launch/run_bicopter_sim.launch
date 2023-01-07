@@ -1,7 +1,0 @@
-<launch>
-
-	<include file="$(find bicopter_pybullet_controller)/launch/run_bicopter_pybullet_controller.launch"/>
-
-	<include file="$(find bicopter_angle_controller)/launch/run_bicopter_angle_controller.launch"/>
-
-</launch>
