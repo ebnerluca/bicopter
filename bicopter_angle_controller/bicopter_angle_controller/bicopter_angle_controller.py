@@ -24,6 +24,13 @@ class BicopterAngleController(Node):
         self.declare_parameter("angle_commands_topic")
         self.declare_parameter("actuator_commands_topic")
         self.declare_parameter("imu_readings_topic")
+        self.declare_parameter("limits.roll")
+        self.declare_parameter("limits.pitch")
+        self.declare_parameter("limits.height")
+        self.declare_parameter("limits.d_roll")
+        self.declare_parameter("limits.d_pitch")
+        self.declare_parameter("limits.d_yaw")
+        self.declare_parameter("limits.d_height")
         self.declare_parameter("gains.roll.kp")
         self.declare_parameter("gains.roll.kd")
         self.declare_parameter("gains.pitch.kp")
@@ -40,6 +47,13 @@ class BicopterAngleController(Node):
         self.angleCommandsTopic = self.get_parameter("angle_commands_topic").value
         self.actuatorCommandsTopic = self.get_parameter("actuator_commands_topic").value
         self.IMUreadingsTopic = self.get_parameter("imu_readings_topic").value
+        self.r_max = self.get_parameter("limits.roll").value
+        self.p_max = self.get_parameter("limits.pitch").value
+        self.z_max = self.get_parameter("limits.height").value
+        self.wx_max = self.get_parameter("limits.d_roll").value
+        self.wy_max = self.get_parameter("limits.d_pitch").value
+        self.wz_max = self.get_parameter("limits.d_yaw").value
+        self.vz_max = self.get_parameter("limits.d_height").value
         self.r_kp = self.get_parameter("gains.roll.kp").value
         self.r_kd = self.get_parameter("gains.roll.kd").value
         self.p_kp = self.get_parameter("gains.pitch.kp").value
@@ -90,7 +104,14 @@ class BicopterAngleController(Node):
             return yaml_load(f)
 
     def angle_commands_callback(self, commands):
-        self.angleCommands = commands
+
+        self.angleCommands.r = np.clip(commands.r, -self.r_max, self.r_max)
+        self.angleCommands.p = np.clip(commands.p, -self.p_max, self.p_max)
+        self.angleCommands.z = np.clip(commands.z, 0.0, self.z_max)
+        self.angleCommands.w_x = np.clip(commands.w_x, -self.wx_max, self.wx_max)
+        self.angleCommands.w_y = np.clip(commands.w_y, -self.wy_max, self.wy_max)
+        self.angleCommands.w_z = np.clip(commands.w_z, -self.wz_max, self.wz_max)
+        self.angleCommands.v_z = np.clip(commands.v_z, -self.vz_max, self.vz_max)
 
     def imu_readings_callback(self, readings):
 

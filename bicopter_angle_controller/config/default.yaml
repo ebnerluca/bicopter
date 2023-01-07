@@ -9,6 +9,16 @@ bicopter_angle_controller:
     actuator_commands_topic: /bicopter/actuator_commands
     imu_readings_topic: /bicopter/imu_readings
 
+    # angle limits
+    limits:
+      roll: 0.2
+      pitch: 0.2
+      height: 5.0
+      d_roll: 1.0
+      d_pitch: 1.0
+      d_yaw: 1.0
+      d_height: 1.0
+
     # model properties for computing jacobian
     model_properties:
       package: bicopter_model
