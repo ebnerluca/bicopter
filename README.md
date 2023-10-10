@@ -17,7 +17,7 @@ The aim of the project is mainly fun, but also to have a low cost research platf
 
 ## Install
 ### Raspi Hardware Setup
-On an install of Ubuntu 20.04 on a Raspberry Pi 4 device, do as follows:
+On an install of Ubuntu 20.04 on a Raspberry Pi 4 device, install ROS2 foxy with the official instructions. Additionally do as follows:
 ```
 # install gpiozero and pigpio python packages
 sudo apt install python3-gpiozero python3-pigpio
@@ -29,7 +29,25 @@ sudo apt install pigpio  # or from source as simply described here: https://abyz
 sudo pigpio  # once per session, you should create a systemctl service to automate that
 ```
 
+Since pgpiod.service does not exist if pigpiod is installed from source, add this custom service to `/lib/systemd/system/pigpiod.service`:
+```
+[Unit]
+Description=Daemon required to control GPIO pins via pigpio
+[Service]
+ExecStart=/usr/local/bin/pigpiod
+ExecStop=/bin/systemctl kill -s SIGKILL pigpiod
+Type=forking
+[Install]
+WantedBy=multi-user.target
+```
+and enable the service with `sudo systemctl enable pigpiod. Reboot and check if the service is working: 
+```
+sudo systemctl status pigpiod  # check if service is running
+pigs t  # check daemon id
+```
+
 ### Laptop Setup
+On your machine with Ubuntu 20.04, do
 ```
 # install pybullet simulator
 pip3 install pybullet
