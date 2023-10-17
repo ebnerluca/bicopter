@@ -11,5 +11,4 @@ float32 w_y
 float32 w_z
 
 # height
-float32 z
 float32 v_z

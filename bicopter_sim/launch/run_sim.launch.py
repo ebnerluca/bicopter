@@ -29,8 +29,19 @@ def generate_launch_description():
         )
     )
 
+    # input controller
+    input_controller = IncludeLaunchDescription(
+        PathJoinSubstitution(
+            [
+                FindPackageShare("bicopter_input_controller"),
+                "launch",
+                "run_bicopter_input_controller.launch.py"
+            ]
+        )
+    )
 
-    ld.add_action(simulator)
+    ld.add_action(input_controller)
     ld.add_action(angle_controller)
+    ld.add_action(simulator)
 
     return ld

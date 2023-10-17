@@ -37,18 +37,18 @@ class BicopterLowlevelController(Node):
         self.get_logger().info("Reading parameters ...")
         self.declare_parameters(namespace='',
                                 parameters=[
-                                    ('motor_power_limit', None),
+                                    ('motor_power_limit', 0.0),
 
-                                    ('servo_limit_min_angle', None),
-                                    ('servo_limit_max_angle', None),
+                                    ('servo_limit_min_angle', 0.0),
+                                    ('servo_limit_max_angle', 0.0),
 
-                                    ('actuator_commands_topic', None),
-                                    ('sensor_readings_topic', None),
+                                    ('actuator_commands_topic', ""),
+                                    ('sensor_readings_topic', ""),
 
-                                    ('model.package', None),
-                                    ('model.file', None),
+                                    ('model.package', ""),
+                                    ('model.file', ""),
 
-                                    ('prop_c1', None)
+                                    ('prop_c1', 0.0)
         ])
 
         # Safety Limits

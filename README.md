@@ -17,7 +17,7 @@ The aim of the project is mainly fun, but also to have a low cost research platf
 
 ## Install
 ### Raspi Hardware Setup
-On an install of Ubuntu 20.04 on a Raspberry Pi 4 device, install ROS2 foxy with the official instructions. Additionally do as follows:
+On an install of Ubuntu 22.04 on a Raspberry Pi 4 device, install ROS2 Humble with the official instructions. Additionally do as follows:
 ```
 # install gpiozero and pigpio python packages
 sudo apt install python3-gpiozero python3-pigpio
@@ -47,14 +47,28 @@ pigs t  # check daemon id
 ```
 
 ### Laptop Setup
-On your machine with Ubuntu 20.04, do
+On your machine with Ubuntu 22.04, setup a virtual environment (dont forget access to system site pkgs!) and install a few dependencies:
 ```
+# venv
+python3 -m venv --system-site-packages venv
+source venv/bin/activate
+
 # install pybullet simulator
 pip3 install pybullet
 
 # install tf_transformations
 pip3 install transforms3d
-sudo apt install ros-foxy-tf-transformations
+sudo apt install ros-humble-tf-transformations
+
+# install
+colcon build --packages-up-to bicopter_sim
+source install/setup.bash
+```
+
+### Run sim
+```
+# steer with joystick
+ros2 launch bicopter_sim run_bicopter_sim.launch.py
 ```
 
 

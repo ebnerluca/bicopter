@@ -8,6 +8,8 @@ import rclpy
 from rclpy.node import Node
 import numpy as np
 from tf_transformations import euler_from_quaternion
+from rclpy.parameter import Parameter
+
 
 from bicopter_msgs.msg import AngleCommands, ActuatorCommands, SensorReadings
 
@@ -20,27 +22,27 @@ class BicopterAngleController(Node):
         self.log("__init__")
         
         # declare parameters
-        self.declare_parameter("controller_rate")
-        self.declare_parameter("angle_commands_topic")
-        self.declare_parameter("actuator_commands_topic")
-        self.declare_parameter("sensor_readings_topic")
-        self.declare_parameter("limits.roll")
-        self.declare_parameter("limits.pitch")
-        self.declare_parameter("limits.height")
-        self.declare_parameter("limits.d_roll")
-        self.declare_parameter("limits.d_pitch")
-        self.declare_parameter("limits.d_yaw")
-        self.declare_parameter("limits.d_height")
-        self.declare_parameter("gains.roll.kp")
-        self.declare_parameter("gains.roll.kd")
-        self.declare_parameter("gains.pitch.kp")
-        self.declare_parameter("gains.pitch.kd")
-        self.declare_parameter("gains.yaw.kp")
-        self.declare_parameter("gains.yaw.kd")
-        self.declare_parameter("gains.height.kp")
-        self.declare_parameter("gains.height.kd")
-        self.declare_parameter("model_properties.package")
-        self.declare_parameter("model_properties.file")
+        self.declare_parameter("controller_rate", Parameter.Type.DOUBLE)
+        self.declare_parameter("angle_commands_topic", Parameter.Type.STRING)
+        self.declare_parameter("actuator_commands_topic", Parameter.Type.STRING)
+        self.declare_parameter("sensor_readings_topic", Parameter.Type.STRING)
+        self.declare_parameter("limits.roll", Parameter.Type.DOUBLE)
+        self.declare_parameter("limits.pitch", Parameter.Type.DOUBLE)
+        self.declare_parameter("limits.height", Parameter.Type.DOUBLE)
+        self.declare_parameter("limits.d_roll", Parameter.Type.DOUBLE)
+        self.declare_parameter("limits.d_pitch", Parameter.Type.DOUBLE)
+        self.declare_parameter("limits.d_yaw", Parameter.Type.DOUBLE)
+        self.declare_parameter("limits.d_height", Parameter.Type.DOUBLE)
+        self.declare_parameter("gains.roll.kp", Parameter.Type.DOUBLE)
+        self.declare_parameter("gains.roll.kd", Parameter.Type.DOUBLE)
+        self.declare_parameter("gains.pitch.kp", Parameter.Type.DOUBLE)
+        self.declare_parameter("gains.pitch.kd", Parameter.Type.DOUBLE)
+        self.declare_parameter("gains.yaw.kp", Parameter.Type.DOUBLE)
+        self.declare_parameter("gains.yaw.kd", Parameter.Type.DOUBLE)
+        self.declare_parameter("gains.height.kp", Parameter.Type.DOUBLE)
+        self.declare_parameter("gains.height.kd", Parameter.Type.DOUBLE)
+        self.declare_parameter("model_properties.package", Parameter.Type.STRING)
+        self.declare_parameter("model_properties.file", Parameter.Type.STRING)
 
         # get parameters
         self.controllerRate = self.get_parameter("controller_rate").value
@@ -107,7 +109,7 @@ class BicopterAngleController(Node):
 
         self.angleCommands.r = np.clip(commands.r, -self.r_max, self.r_max)
         self.angleCommands.p = np.clip(commands.p, -self.p_max, self.p_max)
-        self.angleCommands.z = np.clip(commands.z, 0.0, self.z_max)
+        # self.angleCommands.z = np.clip(commands.z, 0.0, self.z_max)
         self.angleCommands.w_x = np.clip(commands.w_x, -self.wx_max, self.wx_max)
         self.angleCommands.w_y = np.clip(commands.w_y, -self.wy_max, self.wy_max)
         self.angleCommands.w_z = np.clip(commands.w_z, -self.wz_max, self.wz_max)
@@ -117,12 +119,15 @@ class BicopterAngleController(Node):
 
         q = [readings.q_x, readings.q_y, readings.q_z, readings.q_w]
         r, p, y = euler_from_quaternion(q)
+        
 
         # PD controller
         ddr = self.r_kp * (self.angleCommands.r - r) + self.r_kd * (self.angleCommands.w_x - readings.w_x)
         ddp = self.p_kp * (self.angleCommands.p - p) + self.p_kd * (self.angleCommands.w_y - readings.w_y)
-        ddy = self.y_kp * (self.angleCommands.y - y) + self.y_kd * (self.angleCommands.w_z - readings.w_z)
-        throttle = self.z_kp * (self.angleCommands.z - readings.z) + self.z_kd * (self.angleCommands.v_z - readings.v_z)
+        # ddy = self.y_kp * (self.angleCommands.y - y) + self.y_kd * (self.angleCommands.w_z - readings.w_z)
+        ddy = 0.0 + self.y_kd * (self.angleCommands.w_z - readings.w_z)  # no magnetometer
+        # throttle = self.z_kp * (self.angleCommands.z - z) + self.z_kd * (self.angleCommands.v_z - readings.v_z)
+        throttle = 0.0 + self.z_kd * (self.angleCommands.v_z - readings.v_z)  # no barometer
 
         # update actuator commands
         # self.jacobian = self.get_jacobian()  # if dynamic jacobian is used
